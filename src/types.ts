@@ -80,6 +80,10 @@ export interface SubgraphPoolBase {
     swapEnabled?: boolean;
 }
 
+export interface SubGraphPoolsBase {
+    pools: SubgraphPoolBase[];
+}
+
 export type SubgraphToken = {
     address: string;
     balance: string;
