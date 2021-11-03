@@ -68,6 +68,9 @@ interface SubgraphPoolBase {
     baseToken?: string;
     swapEnabled?: boolean;
 }
+interface SubGraphPoolsBase {
+    pools: SubgraphPoolBase[];
+}
 declare type SubgraphToken = {
     address: string;
     balance: string;
@@ -155,7 +158,7 @@ interface PoolBase {
         amount: BigNumber
     ) => BigNumber;
 }
-interface WeightedPool extends PoolBase {
+interface WeightedPool$1 extends PoolBase {
     totalWeight: string;
 }
 
@@ -265,16 +268,342 @@ declare function BPTForTokensZeroPriceImpact(
     amp: BigNumber
 ): BigNumber;
 
+declare const WETHADDR: {
+    [chainId: number]: string;
+};
+declare const MULTIADDR: {
+    [chainId: number]: string;
+};
+declare const VAULTADDR: {
+    [chainId: number]: string;
+};
+declare const EMPTY_SWAPINFO: SwapInfo;
+
+declare function fetchSubgraphPools(
+    subgraphUrl: string
+): Promise<SubgraphPoolBase[]>;
+
+declare function getOnChainBalances(
+    subgraphPools: SubgraphPoolBase[],
+    multiAddress: string,
+    vaultAddress: string,
+    provider: BaseProvider
+): Promise<SubgraphPoolBase[]>;
+
+declare const PRICE_ERROR_TOLERANCE: BigNumber;
+declare const INFINITESIMAL: BigNumber;
+
+declare type WeightedPoolToken = Pick<
+    NoNullableField<SubgraphToken>,
+    'address' | 'balance' | 'decimals' | 'weight'
+>;
+declare type WeightedPoolPairData = PoolPairBase & {
+    weightIn: BigNumber;
+    weightOut: BigNumber;
+};
+declare class WeightedPool implements PoolBase {
+    poolType: PoolTypes;
+    swapPairType: SwapPairType;
+    id: string;
+    address: string;
+    swapFee: BigNumber;
+    totalShares: string;
+    tokens: WeightedPoolToken[];
+    totalWeight: BigNumber;
+    tokensList: string[];
+    MAX_IN_RATIO: BigNumber;
+    MAX_OUT_RATIO: BigNumber;
+    static fromPool(pool: SubgraphPoolBase): WeightedPool;
+    constructor(
+        id: string,
+        address: string,
+        swapFee: string,
+        totalWeight: string,
+        totalShares: string,
+        tokens: WeightedPoolToken[],
+        tokensList: string[]
+    );
+    setTypeForSwap(type: SwapPairType): void;
+    parsePoolPairData(tokenIn: string, tokenOut: string): WeightedPoolPairData;
+    getNormalizedLiquidity(poolPairData: WeightedPoolPairData): BigNumber;
+    getLimitAmountSwap(
+        poolPairData: PoolPairBase,
+        swapType: SwapTypes
+    ): BigNumber;
+    updateTokenBalanceForPool(token: string, newBalance: BigNumber): void;
+    _exactTokenInForTokenOut(
+        poolPairData: WeightedPoolPairData,
+        amount: BigNumber,
+        exact: boolean
+    ): BigNumber;
+    _tokenInForExactTokenOut(
+        poolPairData: WeightedPoolPairData,
+        amount: BigNumber,
+        exact: boolean
+    ): BigNumber;
+    _spotPriceAfterSwapExactTokenInForTokenOut(
+        poolPairData: WeightedPoolPairData,
+        amount: BigNumber
+    ): BigNumber;
+    _spotPriceAfterSwapTokenInForExactTokenOut(
+        poolPairData: WeightedPoolPairData,
+        amount: BigNumber
+    ): BigNumber;
+    _derivativeSpotPriceAfterSwapExactTokenInForTokenOut(
+        poolPairData: WeightedPoolPairData,
+        amount: BigNumber
+    ): BigNumber;
+    _derivativeSpotPriceAfterSwapTokenInForExactTokenOut(
+        poolPairData: WeightedPoolPairData,
+        amount: BigNumber
+    ): BigNumber;
+}
+
+declare type StablePoolToken = Pick<
+    SubgraphToken,
+    'address' | 'balance' | 'decimals'
+>;
+declare type StablePoolPairData = PoolPairBase & {
+    swapFeeScaled: BigNumber;
+    allBalances: BigNumber[];
+    allBalancesScaled: BigNumber[];
+    invariant: BigNumber;
+    amp: BigNumber;
+    tokenIndexIn: number;
+    tokenIndexOut: number;
+};
+declare class StablePool implements PoolBase {
+    poolType: PoolTypes;
+    swapPairType: SwapPairType;
+    id: string;
+    address: string;
+    amp: BigNumber;
+    swapFee: BigNumber;
+    swapFeeScaled: BigNumber;
+    totalShares: string;
+    tokens: StablePoolToken[];
+    tokensList: string[];
+    AMP_PRECISION: BigNumber;
+    MAX_IN_RATIO: BigNumber;
+    MAX_OUT_RATIO: BigNumber;
+    ampAdjusted: BigNumber;
+    static fromPool(pool: SubgraphPoolBase): StablePool;
+    constructor(
+        id: string,
+        address: string,
+        amp: string,
+        swapFee: string,
+        totalShares: string,
+        tokens: StablePoolToken[],
+        tokensList: string[]
+    );
+    setTypeForSwap(type: SwapPairType): void;
+    parsePoolPairData(tokenIn: string, tokenOut: string): StablePoolPairData;
+    getNormalizedLiquidity(poolPairData: StablePoolPairData): BigNumber;
+    getLimitAmountSwap(
+        poolPairData: PoolPairBase,
+        swapType: SwapTypes
+    ): BigNumber;
+    updateTokenBalanceForPool(token: string, newBalance: BigNumber): void;
+    _exactTokenInForTokenOut(
+        poolPairData: StablePoolPairData,
+        amount: BigNumber,
+        exact: boolean
+    ): BigNumber;
+    _tokenInForExactTokenOut(
+        poolPairData: StablePoolPairData,
+        amount: BigNumber,
+        exact: boolean
+    ): BigNumber;
+    _spotPriceAfterSwapExactTokenInForTokenOut(
+        poolPairData: StablePoolPairData,
+        amount: BigNumber
+    ): BigNumber;
+    _spotPriceAfterSwapTokenInForExactTokenOut(
+        poolPairData: StablePoolPairData,
+        amount: BigNumber
+    ): BigNumber;
+    _derivativeSpotPriceAfterSwapExactTokenInForTokenOut(
+        poolPairData: StablePoolPairData,
+        amount: BigNumber
+    ): BigNumber;
+    _derivativeSpotPriceAfterSwapTokenInForExactTokenOut(
+        poolPairData: StablePoolPairData,
+        amount: BigNumber
+    ): BigNumber;
+}
+
+declare type ElementPoolToken = Pick<
+    SubgraphToken,
+    'address' | 'balance' | 'decimals'
+>;
+declare type ElementPoolPairData = PoolPairBase & {
+    totalShares: BigNumber;
+    expiryTime: number;
+    unitSeconds: number;
+    principalToken: string;
+    baseToken: string;
+    currentBlockTimestamp: number;
+};
+declare class ElementPool implements PoolBase {
+    poolType: PoolTypes;
+    swapPairType: SwapPairType;
+    id: string;
+    address: string;
+    swapFee: string;
+    totalShares: string;
+    tokens: ElementPoolToken[];
+    tokensList: string[];
+    expiryTime: number;
+    unitSeconds: number;
+    principalToken: string;
+    baseToken: string;
+    currentBlockTimestamp: number;
+    static fromPool(pool: SubgraphPoolBase): ElementPool;
+    constructor(
+        id: string,
+        address: string,
+        swapFee: string,
+        totalShares: string,
+        tokens: ElementPoolToken[],
+        tokensList: string[],
+        expiryTime: number,
+        unitSeconds: number,
+        principalToken: string,
+        baseToken: string
+    );
+    setCurrentBlockTimestamp(timestamp: number): void;
+    setTypeForSwap(type: SwapPairType): void;
+    parsePoolPairData(tokenIn: string, tokenOut: string): ElementPoolPairData;
+    getNormalizedLiquidity(poolPairData: ElementPoolPairData): BigNumber;
+    getLimitAmountSwap(
+        poolPairData: ElementPoolPairData,
+        swapType: SwapTypes
+    ): BigNumber;
+    updateTokenBalanceForPool(token: string, newBalance: BigNumber): void;
+    _exactTokenInForTokenOut(
+        poolPairData: ElementPoolPairData,
+        amount: BigNumber,
+        exact: boolean
+    ): BigNumber;
+    _tokenInForExactTokenOut(
+        poolPairData: ElementPoolPairData,
+        amount: BigNumber,
+        exact: boolean
+    ): BigNumber;
+    _spotPriceAfterSwapExactTokenInForTokenOut(
+        poolPairData: ElementPoolPairData,
+        amount: BigNumber
+    ): BigNumber;
+    _spotPriceAfterSwapTokenInForExactTokenOut(
+        poolPairData: ElementPoolPairData,
+        amount: BigNumber
+    ): BigNumber;
+    _derivativeSpotPriceAfterSwapExactTokenInForTokenOut(
+        poolPairData: ElementPoolPairData,
+        amount: BigNumber
+    ): BigNumber;
+    _derivativeSpotPriceAfterSwapTokenInForExactTokenOut(
+        poolPairData: ElementPoolPairData,
+        amount: BigNumber
+    ): BigNumber;
+}
+
+declare function parseNewPool(
+    pool: SubgraphPoolBase,
+    currentBlockTimestamp?: number
+): WeightedPool | StablePool | ElementPool | undefined;
+declare function getOutputAmountSwap(
+    pool: PoolBase,
+    poolPairData: PoolPairBase,
+    swapType: SwapTypes,
+    amount: BigNumber
+): BigNumber;
+
+declare const Lido: {
+    Networks: number[];
+    stETH: {
+        1: string;
+        42: string;
+    };
+    wstETH: {
+        1: string;
+        42: string;
+    };
+    WETH: {
+        1: string;
+        42: string;
+    };
+    DAI: {
+        1: string;
+        42: string;
+    };
+    USDC: {
+        1: string;
+        42: string;
+    };
+    USDT: {
+        1: string;
+        42: string;
+    };
+    StaticPools: {
+        staBal: {
+            1: string;
+            42: string;
+        };
+        wethDai: {
+            1: string;
+            42: string;
+        };
+        wstEthWeth: {
+            1: string;
+            42: string;
+        };
+    };
+};
+declare const Routes: {
+    1: {};
+    42: {};
+};
+declare function isLidoStableSwap(
+    chainId: number,
+    tokenIn: string,
+    tokenOut: string
+): boolean;
+declare function getStEthRate(
+    provider: BaseProvider,
+    chainId: number
+): Promise<BigNumber>;
+declare function getLidoStaticSwaps(
+    pools: SubgraphPoolBase[],
+    chainId: number,
+    tokenIn: string,
+    tokenOut: string,
+    swapType: SwapTypes,
+    swapAmount: BigNumber,
+    provider: BaseProvider
+): Promise<SwapInfo>;
+
+declare const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
+
 export {
+    BPTForTokensZeroPriceImpact$1 as BPTForTokensZeroPriceImpact,
+    EMPTY_SWAPINFO,
+    INFINITESIMAL,
+    Lido,
+    MULTIADDR,
     NewPath,
     NoNullableField,
+    PRICE_ERROR_TOLERANCE,
     PoolBase,
     PoolDictionary,
     PoolFilter,
     PoolPairBase,
     PoolPairDictionary,
     PoolTypes,
+    Routes,
     SOR,
+    SubGraphPoolsBase,
     SubgraphPoolBase,
     SubgraphToken,
     Swap,
@@ -283,8 +612,18 @@ export {
     SwapPairType,
     SwapTypes,
     SwapV2,
-    WeightedPool,
+    VAULTADDR,
+    WETHADDR,
+    WeightedPool$1 as WeightedPool,
+    ZERO_ADDRESS,
     bnum,
+    fetchSubgraphPools,
+    getLidoStaticSwaps,
+    getOnChainBalances,
+    getOutputAmountSwap,
+    getStEthRate,
+    isLidoStableSwap,
+    parseNewPool,
     scale,
     BPTForTokensZeroPriceImpact as stableBPTForTokensZeroPriceImpact,
     BPTForTokensZeroPriceImpact$1 as weightedBPTForTokensZeroPriceImpact,
