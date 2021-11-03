@@ -71,6 +71,14 @@ interface SubgraphPoolBase {
 interface SubGraphPoolsBase {
     pools: SubgraphPoolBase[];
 }
+interface DisabledOptions {
+    isOverRide: boolean;
+    disabledTokens: DisabledToken[];
+}
+interface DisabledToken {
+    address: string;
+    symbol: string;
+}
 declare type SubgraphToken = {
     address: string;
     balance: string;
@@ -588,6 +596,8 @@ declare const ZERO_ADDRESS = '0x0000000000000000000000000000000000000000';
 
 export {
     BPTForTokensZeroPriceImpact$1 as BPTForTokensZeroPriceImpact,
+    DisabledOptions,
+    DisabledToken,
     EMPTY_SWAPINFO,
     INFINITESIMAL,
     Lido,

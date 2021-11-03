@@ -84,6 +84,16 @@ export interface SubGraphPoolsBase {
     pools: SubgraphPoolBase[];
 }
 
+export interface DisabledOptions {
+    isOverRide: boolean;
+    disabledTokens: DisabledToken[];
+}
+
+export interface DisabledToken {
+    address: string;
+    symbol: string;
+}
+
 export type SubgraphToken = {
     address: string;
     balance: string;
